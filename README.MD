@@ -1,12 +1,12 @@
 # Stellar Notifier
 
-A standalone service that tracks Stellar Network operations and streams notifications to the subscribers. 
+A standalone service that tracks Stellar Network operations and streams notifications to the subscribers.
 The notifications are sent as JSON-encoded HTTP POST requests.  
-    
+
 ### Highlights
 
 - Highly configurable.
-- Supports operations filtering by account, asset, transaction memo, and operation type. 
+- Supports operations filtering by account, asset, transaction memo, and operation type.
 - Guaranteed delivery, even if the notification recipient or the Notifier itself is down for some time.
 - Supports public and private Stellar networks.
 - Can be used as a shared microservice that streams events to multiple endpoints.
@@ -20,7 +20,7 @@ The notifications are sent as JSON-encoded HTTP POST requests.
 - **Payment processing**.\
 Never miss a payment, even if a user decided to pay one week later, or you have some troubles with your server.
 - **Anchors and ICOs**.\
-Implement complex scenarios for your assets and track all user accounts. 
+Implement complex scenarios for your assets and track all user accounts.
 Track all operations involving your asset to gather statistics or calculate dividends.
 - **Trading platforms**.\
 Observe trading activity, aggregate market data, gather statistics, build market-making applications.
@@ -36,20 +36,20 @@ Subscribe to inflation operation and distribute rewards when the subscription wa
 
 #### Stellar Horizon server
 
-Notifier relies on an event stream from Horizon server, so you'll need to choose a public Horizon instance 
-(like https://horizon.stellar.org and https://horizon-testnet.stellar.org/), or you own hosted Horizon instance. 
-The latter option is preferable for production cases. 
+Notifier relies on an event stream from Horizon server, so you'll need to choose a public Horizon instance
+(like https://horizon.stellar.org and https://horizon-testnet.stellar.org/), or you own hosted Horizon instance.
+The latter option is preferable for production cases.
 Nevertheless, public Horizon instances supported by SDF work just fine as well.
 
 #### NodeJS 8.6.0+
 
-The service requires NodeJS 8.6.0 or later. 
+The service requires NodeJS 8.6.0 or later.
 
 #### (Optional) MongoDB 3.2+ or other storage provider
 
 For the production deployment all notification queues are stored in the database.
 
-MongoDB was selected as the most convenient option in terms of fast read/writes alongside with minimum memory/IO overhead. 
+MongoDB was selected as the most convenient option in terms of fast read/writes alongside with minimum memory/IO overhead.
 
 #### Supported platforms
 
@@ -72,10 +72,10 @@ npm i
 ```
 
 3\. (For production deployments)
-Ensure that MongoDB is running. 
+Ensure that MongoDB is running.
 Download it [here](https://www.mongodb.com/download-center?jmp=nav#community) in case if it has not been installed yet.
 
-4\. Set configuration parameters in `app.config.json` (see [Configuration](#configuration) section).
+4\. Set configuration parameters in `app.config.js` (see [Configuration](#configuration) section).
 
 5\. Start the service.
 
@@ -85,52 +85,62 @@ npm run start
 
 ## Configuration
 
-All configuration parameters are located in `app.config.json` file.
+All configuration parameters are located in `app.config.js` file.
 
 - **storageProvider**\
 Storage provider for persistence layer (see details in [Storage providers](#storage-providers) section).\
-Default value: `"memory"` 
+Default value: `"memory"`\
+Environment variable: `STORAGE_PROVIDER`
 - **storageConnectionString**\
 Connection string for storage provider.\
-Default value: `""` 
+Default value: `""`\
+Environment variable: `STORAGE_CONNECTION_STRING`
 - **apiPort**\
 API exposed by the notifier.\
-Default value: `4021` 
+Default value: `4021`\
+Environment variable: `API_PORT`
 - **authorization**\
 Server authorization mode.\
 `disabled` mode turns off the authentication (recommended for local installations).\
 `token` authentication expects `access_token` with user requests (see [API Authentication](#authentication)).\
-Default value: `"disabled"`.
+Default value: `"disabled"`.\
+Environment variable: `AUTHORIZATION`
 - **horizon**\
 Horizon server URL.\
-Default value: `"https://horizon.stellar.org"`.
+Default value: `"https://horizon.stellar.org"`.\
+Environment variable: `HORIZON`
 - **reactionResponseTimeout**\
-Maximum expected HTTP response timeout (in seconds). 
+Maximum expected HTTP response timeout (in seconds).
 If the reaction URL takes more time to respond, the request is aborted and notification is marked as failed.\
-Default value: `10`.
+Default value: `20`.\
+Environment variable: `REACTION_RESPONSE_TIMEOUT`
 - **adminAuthenticationToken**\
-API authentication token for admin user (for `"authentication"="token"` mode). 
+API authentication token for admin user (for `"authentication"="token"` mode).
 Leave empty to use a randomly generated token.\
-Default Value: `""`.
+Default Value: `""`.\
+Environment variable: `ADMIN_AUTHENTICATION_TOKEN`
 - **signatureSecret**\
-Secret key used to sign the notifications. Do not forget to set your own secret. 
-It can be easily generated using [Stellar Laboratory](https://www.stellar.org/laboratory/#account-creator?network=test). 
+Secret key used to sign the notifications. Do not forget to set your own secret.
+It can be easily generated using [Stellar Laboratory](https://www.stellar.org/laboratory/#account-creator?network=test).
 Do not use the default value or a secret key from the funded account.\
-Default value: `""`.
+Default value: `""`.\
+Environment variable: `SIGNATURE_SECRET`
 - **maxActiveSubscriptions**\
 Maximum simultaneously tracked subscriptions.\
-Default value: `10000`.
+Default value: `10000`.\
+Environment variable: `MAX_ACTIVE_SUBSCRIPTIONS`
 - **notificationConcurrency**\
 Maximum concurrent notification threads (effectively, it equals the maximum parallel pending HTTP requests).\
-Default value: `100`.
+Default value: `100`.\
+Environment variable: `NOTIFICATION_CONCURRENCY`
 
 #### Storage providers
 
-Notifier can store notification queues and operational information in the database or in memory. 
-The latter case is suited only for testing or cases without guaranteed delivery. 
+Notifier can store notification queues and operational information in the database or in memory.
+The latter case is suited only for testing or cases without guaranteed delivery.
 
 There are two built-in storage providers: `mongodb` and `memory`.
-Other storage providers can be easily connected through the standard interface. 
+Other storage providers can be easily connected through the standard interface.
 
 #### Config example:
 
@@ -151,10 +161,10 @@ Other storage providers can be easily connected through the standard interface.
 
 ### Authentication
 
-With `authorization` config parameter set to `disabled`, there is no need to bother about authentication. 
+With `authorization` config parameter set to `disabled`, there is no need to bother about authentication.
 But it only works in cases where the service is not exposed to public networks (i.e. behind the firewall).
 
-To enable token-based authentication, set `authorization` to `token`. In this mode, any interaction with protected API will require an authentication token. 
+To enable token-based authentication, set `authorization` to `token`. In this mode, any interaction with protected API will require an authentication token.
 The token can be passed as a POST parameter (`access_token=<your_token>`), GET query parameter (`?access_token=<your_token>`), or Authorization header (`Authorization: Token <your_token>`).
 
 ### Create subscription
@@ -192,7 +202,7 @@ Response example:
   "created": "2018-05-01T15:59:52.475Z",
   "updated": "2018-05-01T16:01:19.742Z"
 }
-``` 
+```
 
 The `id` value from response can be used to delete the subscription.
 
@@ -278,8 +288,8 @@ Notifications are sent as JSON-encoded POST requests with the following format:
     "paging_token": "757838947790643264",
     "source_account_sequence": "7196037745321120376",
     "created_at": "2018-05-01T16:45:37Z",
-    "memo": { 
-      "type": "text", 
+    "memo": {
+      "type": "text",
       "value": "105683157"
     }
   }
@@ -293,11 +303,11 @@ Request headers:
 
 ## Testing
 
-Well, there are almost no tests at this point. I'm working on adding comprehensive unit and integration test siutes. 
+Well, there are almost no tests at this point. I'm working on adding comprehensive unit and integration test siutes.
 
 Will be grateful for any help with it.
 
-Run all tests with 
+Run all tests with
 
 ```
 npm run test

@@ -1,6 +1,6 @@
 process.env.NODE_ENV = process.env.NODE_ENV || 'production'
 
-const config = require('./app.config.json')
+const config = require('./app.config')
 
 //init storage and persistence layer
 const storage = require('./logic/storage')
