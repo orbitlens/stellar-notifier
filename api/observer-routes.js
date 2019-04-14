@@ -1,8 +1,10 @@
-const checkAuth = require('./authorization-handler'),
-    pkgInfo = require('../package'),
-    {getPublicKey} = require('../util/signing'),
+const pkgInfo = require('../package'),
+    config = require('../models/config'),
+    signing = require('../util/signing')(config.signatureSecret),
     observer = require('../logic/observer'),
-    moment = require('moment-timezone')
+    moment = require('moment-timezone'),
+    auth = require('./authorization-handler'),
+    roles = require('../models/user/roles')
 
 function processResponse(promiseOrData, res) {
     if (!(promiseOrData instanceof Promise)) promiseOrData = Promise.resolve(promiseOrData)
@@ -26,37 +28,46 @@ function processResponse(promiseOrData, res) {
 
 const started = new Date()
 
+function getUser(req) {
+    return req.user ? req.user.pubkey : null
+}
+
 module.exports = function (app) {
     //get application status
     app.get('/api/status', (req, res) => res.json({
         version: pkgInfo.version,
         uptime: moment.duration(new Date() - started, 'milliseconds').format(),
-        publicKey: getPublicKey()
+        publicKey: signing.getPublicKey()
     }))
 
     //get all subscriptions for current user
-    app.get('/api/subscription', checkAuth, (req, res) => {
+    app.get('/api/subscription', auth.userRequiredMiddleware, (req, res) => {
         observer.getActiveSubscriptions()
-            .then(all => all.filter(s => s.user == req.user.id))
+            .then(all => {
+                if (auth.isInRole(req, roles.ADMIN))
+                    return all
+                else
+                    return all.filter(s => s.pubkey == getUser(req))
+            })
             .then(subscriptions => processResponse(subscriptions, res))
     })
 
     //get subscription by id
-    app.get('/api/subscription/:id', checkAuth, (req, res) => {
+    app.get('/api/subscription/:id', auth.userRequiredMiddleware, (req, res) => {
         observer.getSubscription(req.params.id)
             .then(subscription => {
-                if (subscription.user == req.user.id) return processResponse(subscription, res)
+                if (subscription.pubkey == getUser(req)) return processResponse(subscription, res)
                 res.status(404).json({error: `Subscription ${req.params.id} not found.`})
             })
     })
 
     //create new subscription
-    app.post('/api/subscription', checkAuth, (req, res) => {
+    app.post('/api/subscription', auth.userRequiredMiddleware, (req, res) => {
         processResponse(observer.subscribe(req.body, req.user), res)
     })
 
     //unsubscribe
-    app.delete('/api/subscription/:id', checkAuth, (req, res) => {
+    app.delete('/api/subscription/:id', auth.userRequiredMiddleware, (req, res) => {
         observer.unsubscribe(req.params.id)
             .then(() => res.status(200).end())
     })

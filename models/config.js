@@ -1,4 +1,4 @@
-const config = require('../app.config.json')
+const config = process.env['NODE_ENV'] == 'test' ?  require('../test/app.config-test.json') :  require('../app.config.json')
 
 function camelCase(value) {
     return value.toLowerCase().replace(/_([a-z])/g, (x, up) => up.toUpperCase())

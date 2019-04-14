@@ -12,7 +12,7 @@
     "url": "https://github.com/orbitlens/stellar-notifier"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development node ./app.js",
+    "dev": "cross-env NODE_ENV=development node --nolazy --inspect-brk=9229 ./app.js",
     "start": "cross-env NODE_ENV=production node ./app.js",
     "test": "cross-env NODE_ENV=test node_modules/.bin/mocha"
   },
@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "chai-http": "^4.2.0",
     "mocha": "^5.1.0",
     "sinon": "^4.5.0",
     "cross-env": "^5.2.0"

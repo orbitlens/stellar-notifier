@@ -1,4 +1,5 @@
 const StorageProvider = require('../storage-provider'),
+    MongoUserProvider = require('./mongo-user-provider'),
     mongoose = require('mongoose'),
     {ObjectId} = mongoose.Types
 
@@ -6,7 +7,6 @@ mongoose.connection.on('error', console.error)
 mongoose.connection.on('disconnected', () => setTimeout(() => connect(), 1000))
 
 let connectionInitialized = false,
-    User,
     Subscription,
     TxIngestionCursor,
     Notification
@@ -27,7 +27,6 @@ function connect(config) {
     if (connectionInitialized) return
     connectionInitialized = true
     //init models
-    User = require('./models/user-db-model')
     Subscription = require('./models/subscription-db-model')
     TxIngestionCursor = require('./models/tx-ingestion-cursor-db-model')
     Notification = require('./models/notification-db-model')
@@ -83,17 +82,10 @@ class MongoDBStorageProvider extends StorageProvider {
         return subscription.save()
     }
 
-    createDefaultAdminUser(adminAuthenticationToken) {
-        return User.findOne({admin: true})
-            .then(admin => {
-                if (admin) {
-                    if (adminAuthenticationToken && admin.authToken !== adminAuthenticationToken) {
-                        admin.authToken = adminAuthenticationToken
-                        return admin.save()
-                    }
-                    return admin
-                }
-                return new User({admin: true, authToken: adminAuthenticationToken}).save()
+    removeAllSubscriptions() {
+        return Subscription.deleteMany({})
+            .then(() => {
+                return Notification.deleteMany({})
             })
     }
 
@@ -116,9 +108,8 @@ class MongoDBStorageProvider extends StorageProvider {
             .then(pointer => pointer && pointer.lastIngestedTx)
     }
 
-    getUserByAuthToken(authToken) {
-        //TODO: cache user models for a short period of time to prevent flooding
-        return User.findOne({authToken: authToken})
+    get userProvider() {
+        return new MongoUserProvider()
     }
 }
 

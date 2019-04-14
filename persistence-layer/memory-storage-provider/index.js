@@ -1,4 +1,5 @@
 const StorageProvider = require('../storage-provider'),
+    MemoryUserProvider = require('./user-memory-provider'),
     crypto = require('crypto')
 
 function ensureId(model) {
@@ -9,13 +10,13 @@ function ensureId(model) {
 
 //memory storage
 const repository = {
-    users: [],
     subscriptions: [],
     notifications: [],
+    users: [],
     lastIngestedTx: null
 }
 
-class MongoDBStorageProvider extends StorageProvider {
+class MemoryStorageProvider extends StorageProvider {
     constructor() {
         super()
     }
@@ -44,7 +45,8 @@ class MongoDBStorageProvider extends StorageProvider {
     }
 
     removeNotification(notification) {
-        let index = repository.notifications.indexOf(ensureId(notification))
+        ensureId(notification)
+        let index = repository.notifications.indexOf(notification)
         if (index >= 0) {
             repository.notifications.splice(index, 1)
         }
@@ -61,24 +63,16 @@ class MongoDBStorageProvider extends StorageProvider {
 
     saveSubscription(subscription) {
         if (!repository.subscriptions.includes(subscription)) {
-            repository.subscriptions.push(ensureId(subscription))
+            ensureId(subscription)
+            repository.subscriptions.push(subscription)
         }
         return Promise.resolve(subscription)
     }
 
-    createDefaultAdminUser(adminAuthenticationToken) {
-        let admin = repository.users.find(u => u.admin)
-        if (!admin) {
-            admin = {admin: true}
-        }
-        admin.authToken = adminAuthenticationToken
-
-        return Promise.resolve(admin)
-    }
-
-    getUserByAuthToken(authToken) {
-        let user = repository.users.find(u => u.authToken === authToken)
-        return Promise.resolve(user)
+    removeAllSubscriptions() {
+        repository.subscriptions = []
+        repository.notifications = []
+        return Promise.resolve()
     }
 
     updateLastIngestedTx(ingestedTxSequence) {
@@ -89,6 +83,10 @@ class MongoDBStorageProvider extends StorageProvider {
     getLastIngestedTx() {
         return Promise.resolve(repository.lastIngestedTx)
     }
+
+    get userProvider() {
+        return new MemoryUserProvider(this, repository)
+    }
 }
 
-module.exports = MongoDBStorageProvider
+module.exports = MemoryStorageProvider

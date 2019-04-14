@@ -2,7 +2,8 @@ const express = require('express'),
     logger = require('morgan'),
     bodyParser = require('body-parser'),
     cors = require('cors'),
-    http = require('http')
+    http = require('http'),
+    auth = require('./authorization-handler')
 
 module.exports = function initializeServer(config) {
     //create Express server instance
@@ -29,6 +30,8 @@ module.exports = function initializeServer(config) {
         res.status(500).end()
     })
 
+    app.all('*', auth.userMiddleware)
+
     //register routes
     require('./observer-routes')(app)
     require('./user-routes')(app)
@@ -54,4 +57,6 @@ module.exports = function initializeServer(config) {
             bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
         console.log('Listening on ' + bind)
     })
+
+    return {app, server}
 }

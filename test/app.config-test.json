@@ -1,7 +1,7 @@
 {
-  "authorization": "disabled",
-  "storageProvider": "memory",
-  "storageConnectionString": "",
+  "authorization": "token",
+  "storageProvider": "mongodb",
+  "storageConnectionString": "mongodb://127.0.0.1:27017/stellar-notifier-test",
   "apiPort": 4021,
   "horizon": "https://horizon.stellar.org",
   "signatureSecret": "SDBT736EJIIRDC3RSN544NO6OSNMZAWAKRARLOMRP2XJAOGKTQLFFR3V",

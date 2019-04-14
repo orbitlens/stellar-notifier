@@ -2,3 +2,5 @@
 --reporter dot
 --ui bdd
 --recursive
+
+--file ./test/teardown.js
