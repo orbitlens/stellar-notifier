@@ -21,20 +21,21 @@ module.exports = function initializeServer(config) {
     //allow CORS requests
     app.use(cors())
 
+    app.all('*', auth.userMiddleware)
+
+    //register routes
+    require('./observer-routes')(app)
+    require('./user-routes')(app)
+
     // error handler
     app.use((err, req, res, next) => {
         if (err) console.error(err)
         if (res.headersSent) {
             return next(err)
         }
-        res.status(500).end()
+        let status = err ? err.code || 500 : 500
+        res.status(status).end()
     })
-
-    app.all('*', auth.userMiddleware)
-
-    //register routes
-    require('./observer-routes')(app)
-    require('./user-routes')(app)
 
     function normalizePort(val) {
         let port = parseInt(val)
@@ -57,6 +58,6 @@ module.exports = function initializeServer(config) {
             bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
         console.log('Listening on ' + bind)
     })
-
-    return {app, server}
+    server.app = app
+    return server
 }

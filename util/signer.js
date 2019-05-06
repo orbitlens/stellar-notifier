@@ -18,7 +18,7 @@ function deserializeSignature(signature) {
     return res
 }
 
-class Signing {
+class Signer {
     /**
      * 
      * @param {String} keysource Public key or secret
@@ -73,6 +73,4 @@ class Signing {
     }
 }
 
-module.exports = function(keysource) {
-    return new Signing(keysource)
-}
+module.exports = Signer

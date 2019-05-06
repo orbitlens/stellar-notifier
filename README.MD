@@ -133,6 +133,10 @@ Env parameter: `SIGNATURE_SECRET`
 Maximum simultaneously tracked subscriptions.\
 Default value: `10000`.\
 Env parameter: `MAX_ACTIVE_SUBSCRIPTIONS`
+- **maxActiveSubscriptionsPerUser**\
+Maximum simultaneously tracked subscriptions per single user.\
+Default value: `100`.\
+Env parameter: `MAX_ACTIVE_SUBSCRIPTIONS_PER_USER`
 - **notificationConcurrency**\
 Maximum concurrent notification threads (effectively, it equals the maximum parallel pending HTTP requests).\
 Default value: `100`.\

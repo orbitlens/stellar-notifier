@@ -17,7 +17,7 @@ const server = require('./api/server-initialization')(config)
 
 function shutdown() {
     console.log('Received kill signal');
-    server.server.close(() => {
+    server.close(() => {
         console.log('Closed out remaining connections');
         process.exit(0);
     });

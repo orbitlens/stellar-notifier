@@ -88,8 +88,6 @@ class UserProvider {
         notImplemented()
     }
 
-    //#region protected members
-
     _addUser(user) {
         notImplemented()
     }
@@ -97,8 +95,6 @@ class UserProvider {
     _deleteUserById(id) {
         notImplemented()
     }
-
-    //#endregion
 }
 
 module.exports = UserProvider

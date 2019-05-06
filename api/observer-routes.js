@@ -1,6 +1,5 @@
 const pkgInfo = require('../package'),
-    config = require('../models/config'),
-    signing = require('../util/signing')(config.signatureSecret),
+    serverSigner = require('../util/server-signer'),
     observer = require('../logic/observer'),
     moment = require('moment-timezone'),
     auth = require('./authorization-handler'),
@@ -28,7 +27,7 @@ function processResponse(promiseOrData, res) {
 
 const started = new Date()
 
-function getUser(req) {
+function getUserPubKey(req) {
     return req.user ? req.user.pubkey : null
 }
 
@@ -37,7 +36,7 @@ module.exports = function (app) {
     app.get('/api/status', (req, res) => res.json({
         version: pkgInfo.version,
         uptime: moment.duration(new Date() - started, 'milliseconds').format(),
-        publicKey: signing.getPublicKey()
+        publicKey: serverSigner.getPublicKey()
     }))
 
     //get all subscriptions for current user
@@ -46,8 +45,7 @@ module.exports = function (app) {
             .then(all => {
                 if (auth.isInRole(req, roles.ADMIN))
                     return all
-                else
-                    return all.filter(s => s.pubkey == getUser(req))
+                return all.filter(s => s.pubkey == getUserPubKey(req))
             })
             .then(subscriptions => processResponse(subscriptions, res))
     })
@@ -56,8 +54,10 @@ module.exports = function (app) {
     app.get('/api/subscription/:id', auth.userRequiredMiddleware, (req, res) => {
         observer.getSubscription(req.params.id)
             .then(subscription => {
-                if (subscription.pubkey == getUser(req)) return processResponse(subscription, res)
-                res.status(404).json({error: `Subscription ${req.params.id} not found.`})
+                if (subscription.pubkey == getUserPubKey(req)) return processResponse(subscription, res)
+                res.status(404).json({
+                    error: `Subscription ${req.params.id} not found.`
+                })
             })
     })
 
@@ -73,6 +73,10 @@ module.exports = function (app) {
     })
 
     //block modifications
-    app.put('/api/subscription', (req, res) => res.status(405).json({error: 'Subscription cannot be modified'}))
-    app.put('/api/subscription/:id', (req, res) => res.status(405).json({error: 'Subscription cannot be modified'}))
+    app.put('/api/subscription', (req, res) => res.status(405).json({
+        error: 'Subscription cannot be modified'
+    }))
+    app.put('/api/subscription/:id', (req, res) => res.status(405).json({
+        error: 'Subscription cannot be modified'
+    }))
 }
