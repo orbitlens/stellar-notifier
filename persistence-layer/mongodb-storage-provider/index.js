@@ -1,7 +1,9 @@
 const StorageProvider = require('../storage-provider'),
     MongoUserProvider = require('./mongo-user-provider'),
     mongoose = require('mongoose'),
-    {ObjectId} = mongoose.Types
+    {
+        ObjectId
+    } = mongoose.Types
 
 mongoose.connection.on('error', console.error)
 mongoose.connection.on('disconnected', () => setTimeout(() => connect(), 1000))
@@ -18,28 +20,29 @@ function toObjectId(id) {
     return id
 }
 
-//init connection
-function connect(config) {
-    mongoose.connect(config.storageConnectionString, {
-        keepAlive: 1
-    })
-
-    if (connectionInitialized) return
-    connectionInitialized = true
-    //init models
-    Subscription = require('./models/subscription-db-model')
-    TxIngestionCursor = require('./models/tx-ingestion-cursor-db-model')
-    Notification = require('./models/notification-db-model')
-}
-
 class MongoDBStorageProvider extends StorageProvider {
-    constructor(config) {
-        super()
-        connect(config)
+
+    init(config) {
+        if (connectionInitialized)
+            return Promise.resolve()
+        return mongoose.connect(config.storageConnectionString, {
+            keepAlive: 1
+        }).then(() => {
+
+            connectionInitialized = true
+            //init models
+            Subscription = require('./models/subscription-db-model')
+            TxIngestionCursor = require('./models/tx-ingestion-cursor-db-model')
+            Notification = require('./models/notification-db-model')
+
+            return Promise.resolve()
+        })
     }
 
     fetchSubscriptions() {
-        return Subscription.find({status: 0})
+        return Subscription.find({
+            status: 0
+        })
     }
 
     fetchSubscription(id) {
@@ -47,11 +50,15 @@ class MongoDBStorageProvider extends StorageProvider {
     }
 
     fetchNextNotification(subscriptionId) {
-        return Notification.findOne({subscriptions: toObjectId(subscriptionId)})
+        return Notification.findOne({
+            subscriptions: toObjectId(subscriptionId)
+        })
     }
 
     createNotifications(notifications) {
-        return Notification.insertMany(notifications, {ordered: false})
+        return Notification.insertMany(notifications, {
+                ordered: false
+            })
             .catch(err => {
                 //TODO: test duplicate primary key handling
                 //if the error thrown is a BulkWriteError with error codes 11000, than it's ok
@@ -69,7 +76,13 @@ class MongoDBStorageProvider extends StorageProvider {
     }
 
     markAsProcessed(notification, subscription) {
-        Notification.update({_id: toObjectId(notification.id)}, {$pull: {subscriptions: toObjectId(subscription.id)}}, function (err, res) {
+        Notification.update({
+            _id: toObjectId(notification.id)
+        }, {
+            $pull: {
+                subscriptions: toObjectId(subscription.id)
+            }
+        }, function (err, res) {
             if (err) console.error(err)
         })
         return Promise.resolve(notification)
@@ -90,17 +103,14 @@ class MongoDBStorageProvider extends StorageProvider {
     }
 
     updateLastIngestedTx(ingestedTxSequence) {
-        return TxIngestionCursor.update(
-            {
-                _id: 0
-            },
-            {
-                lastIngestedTx: ingestedTxSequence,
-                updated: new Date()
-            },
-            {
-                upsert: true
-            })
+        return TxIngestionCursor.update({
+            _id: 0
+        }, {
+            lastIngestedTx: ingestedTxSequence,
+            updated: new Date()
+        }, {
+            upsert: true
+        })
     }
 
     getLastIngestedTx() {

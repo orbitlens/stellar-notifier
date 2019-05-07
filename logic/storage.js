@@ -29,9 +29,12 @@ class Storage {
             provider = require(provider)
         }
         //initialize storage provider
-        this.provider = new provider(config)
+        this.provider = new provider()
+
         if (!(this.provider instanceof require('../persistence-layer/storage-provider'))) throw new TypeError('Invalid storage provider')
         console.log(`Using "${config.storageProvider}" storage provider.`)
+        
+        return this.provider.init(config)
     }
 
     /**

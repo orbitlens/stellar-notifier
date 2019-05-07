@@ -2,7 +2,7 @@
   "name": "stellar-notifier",
   "license": "MIT",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "orbitlens",
   "description": "Stellar operations observer and notifier.",
   "main": "app.js",
@@ -34,7 +34,8 @@
     "morgan": "^1.9.1",
     "stellar-base": "^0.11.0",
     "stellar-sdk": "^0.13.0",
-    "throttleit": "^1.0.0"
+    "throttleit": "^1.0.0",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",

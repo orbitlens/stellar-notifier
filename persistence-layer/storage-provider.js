@@ -7,6 +7,10 @@ class StorageProvider {
         if (this.constructor === StorageProvider) throw new TypeError('Cannot create an instance of abstract StorageProvider class.')
     }
 
+    init(config) {
+        notImplemented()
+    }
+
     fetchSubscriptions() {
         notImplemented()
     }

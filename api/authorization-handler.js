@@ -2,7 +2,10 @@ const config = require('../models/config'),
     storage = require('../logic/storage'),
     roles = require('../models/user/roles'),
     signer = require('../util/signer'),
-    errors = require('../util/errors')
+    errors = require('../util/errors'),
+    {
+        objectToFormEncoding
+    } = require('../util/form-url-encoding-helper')
 
 const scheme = 'ed25519 '
 
@@ -25,60 +28,60 @@ function userMiddleware(req, res, next) {
     req.user = null
     if (!config.authorization || config.authorization === 'disabled') {
         req.user = getDefaultAdmin()
-    } else {
-        let token = req.headers['x-access-token'] || req.headers['authorization']
-        if (token && token.startsWith(scheme)) {
-            token = token.slice(scheme.length, token.length)
-        }
+        return next()
+    }
+    let token = req.headers['x-access-token'] || req.headers['authorization']
+    if (token && token.startsWith(scheme)) {
+        token = token.slice(scheme.length, token.length)
+    }
 
-        if (!token)
-            return next()
-        if (token === config.adminAuthenticationToken) {
-            req.user = getDefaultAdmin()
-            return next()
-        }
+    if (!token)
+        return next()
+    if (token === config.adminAuthenticationToken) {
+        req.user = getDefaultAdmin()
+        return next()
+    }
 
-        const [pubkey, signature] = token.split('.')
+    const [pubkey, signature] = token.split('.')
 
-        let payload = JSON.stringify(req.body),
-            nonce = Number(req.body.nonce)
-        if (req.method === 'GET') {
-            nonce = Number(req.params.nonce || req.query.nonce)
-            payload = nonce.toString()
-        }
+    let payload = objectToFormEncoding(req.body),
+        nonce = Number(req.body.nonce)
+    if (req.method === 'GET') {
+        nonce = Number(req.query.nonce)
+        payload = objectToFormEncoding(req.query)
+    }
 
-        if (nonce && !isNaN(nonce) && payload) {
-            const userSigner = new signer(pubkey)
-            if (userSigner.verify(payload, signature)) {
-                let userProvider = storage.provider.userProvider
-                userProvider.getUserByPublicKey(pubkey)
-                    .then(user => {
-                        if (user)
-                            return user
-                        return userProvider.addUser({
-                                pubkey,
-                                roles: []
+    if (nonce && !isNaN(nonce) && payload) {
+        const userSigner = new signer(pubkey)
+        if (userSigner.verify(payload, signature)) {
+            let userProvider = storage.provider.userProvider
+            userProvider.getUserByPublicKey(pubkey)
+                .then(user => {
+                    if (user)
+                        return user
+                    return userProvider.addUser({
+                            pubkey,
+                            roles: []
+                        })
+                        .then(() => userProvider.getUserByPublicKey(pubkey))
+                })
+                .then(user => {
+                    if (user && user.nonce < nonce) {
+                        return userProvider.updateNonce(user.id, nonce)
+                            .then(res => {
+                                if (res)
+                                    req.user = {
+                                        pubkey: user.pubkey,
+                                        roles: user.roles
+                                    }
+                                return Promise.resolve()
                             })
-                            .then(() => userProvider.getUserByPublicKey(pubkey))
-                    })
-                    .then(user => {
-                        if (user && user.nonce < nonce) {
-                            return userProvider.updateNonce(user.id, nonce)
-                                .then(res => {
-                                    if (res)
-                                        req.user = {
-                                            pubkey: user.pubkey,
-                                            roles: user.roles
-                                        }
-                                    return Promise.resolve()
-                                })
-                        }
-                        return Promise.resolve()
-                    })
-                    .then(() => {
-                        next()
-                    })
-            }
+                    }
+                    return Promise.resolve()
+                })
+                .then(() => {
+                    next()
+                })
         }
     }
 }

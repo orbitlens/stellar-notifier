@@ -6,6 +6,7 @@ const {
 } = require('stellar-base')
 const roles = require('../../models/user/roles')
 const storage = require('../../logic/storage')
+const {objectToFormEncoding} = require('../../util/form-url-encoding-helper')
 let should = chai.should()
 
 let subscriptions = null //will be filled later
@@ -71,7 +72,7 @@ if (config.authorization) {
                     nonce: nonce
                 }
 
-                const signature = signData(newUserKeyPair, data)
+                const signature = signData(newUserKeyPair, objectToFormEncoding(data))
 
                 chai.request(server.app)
                     .post('/api/subscription')
@@ -120,10 +121,10 @@ if (config.authorization) {
 
             it('it should GET all own subscriptions', (done) => {
 
-                const nonce = Date.now()
-                const signature = signData(newUserKeyPair, nonce)
+                const payload = objectToFormEncoding({nonce: Date.now()})
+                const signature = signData(newUserKeyPair, payload)
                 chai.request(server.app)
-                    .get(`/api/subscription?nonce=${nonce}`)
+                    .get(`/api/subscription?${payload}`)
                     .set('authorization', `${newUserKeyPair.publicKey()}.${signature}`)
                     .end((err, res) => {
                         res.should.have.status(200)
@@ -135,13 +136,13 @@ if (config.authorization) {
 
             it('it should fail to GET subscription by another\'s id', (done) => {
 
-                const nonce = Date.now()
-                const signature = signData(newUserKeyPair, nonce)
+                const payload = objectToFormEncoding({nonce: Date.now()})
+                const signature = signData(newUserKeyPair, payload)
 
                 const anothersSubs = subscriptions.find(s => s.pubkey !== newUserKeyPair.publicKey())
 
                 chai.request(server.app)
-                    .get(`/api/subscription/${anothersSubs.id}?nonce=${nonce}`)
+                    .get(`/api/subscription/${anothersSubs.id}?${payload}`)
                     .set('authorization', `${newUserKeyPair.publicKey()}.${signature}`)
                     .end((err, res) => {
                         res.should.have.status(404)
@@ -151,13 +152,13 @@ if (config.authorization) {
 
             it('it should GET own subscription by id', (done) => {
 
-                const nonce = Date.now()
-                const signature = signData(newUserKeyPair, nonce)
+                const payload = objectToFormEncoding({nonce: Date.now()})
+                const signature = signData(newUserKeyPair, payload)
 
                 const ownSubs = subscriptions.find(s => s.pubkey === newUserKeyPair.publicKey())
 
                 chai.request(server.app)
-                    .get(`/api/subscription/${ownSubs.id}?nonce=${nonce}`)
+                    .get(`/api/subscription/${ownSubs.id}?${payload}`)
                     .set('authorization', `${newUserKeyPair.publicKey()}.${signature}`)
                     .end((err, res) => {
                         res.should.have.status(200)

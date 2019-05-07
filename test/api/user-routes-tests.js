@@ -6,6 +6,7 @@ const {
 } = require('stellar-base')
 const roles = require('../../models/user/roles')
 const storage = require('../../logic/storage')
+const {objectToFormEncoding} = require('../../util/form-url-encoding-helper')
 let should = chai.should()
 
 chai.use(chaiHttp)
@@ -69,8 +70,9 @@ if (config.authorization) {
                     nonce: Date.now()
                 }
 
-                const signature = signData(adminKeyPair, newUser)
+                const signature = signData(adminKeyPair, objectToFormEncoding(newUser))
 
+                
                 chai.request(server.app)
                     .post('/api/user')
                     .set('authorization', `${adminKeyPair.publicKey()}.${signature}`)
@@ -87,11 +89,13 @@ if (config.authorization) {
 
             it('it should GET all the users', (done) => {
 
-                const nonce = Date.now()
-                const signature = signData(adminKeyPair, nonce)
+                const payload =  objectToFormEncoding({
+                     nonce: Date.now()
+                })
+                const signature = signData(adminKeyPair, payload)
 
                 chai.request(server.app)
-                    .get('/api/user?nonce=' + nonce)
+                    .get('/api/user?' + payload)
                     .set('authorization', `${adminKeyPair.publicKey()}.${signature}`)
                     .end((err, res) => {
                         res.should.have.status(200)
@@ -103,10 +107,12 @@ if (config.authorization) {
 
             it('it should GET own user', (done) => {
 
-                const nonce = Date.now()
-                const signature = signData(newUserKeyPair, nonce)
+                const payload =  objectToFormEncoding({
+                    nonce: Date.now()
+               })
+                const signature = signData(newUserKeyPair, payload)
                 chai.request(server.app)
-                    .get(`/api/user/${newUserKeyPair.publicKey()}?nonce=${nonce}`)
+                    .get(`/api/user/${newUserKeyPair.publicKey()}?${payload}`)
                     .set('authorization', `${newUserKeyPair.publicKey()}.${signature}`)
                     .end((err, res) => {
                         res.should.have.status(200)
@@ -123,7 +129,7 @@ if (config.authorization) {
 
                 const nonce = Date.now()
                 const data = {nonce}
-                const signature = signData(newUserKeyPair, data)
+                const signature = signData(newUserKeyPair, objectToFormEncoding(data))
 
                 chai.request(server.app)
                     .delete(`/api/user/${adminKeyPair.publicKey()}`)
@@ -139,7 +145,7 @@ if (config.authorization) {
 
                 const nonce = Date.now()
                 const data = {nonce}
-                const signature = signData(newUserKeyPair, data)
+                const signature = signData(newUserKeyPair, objectToFormEncoding(data))
 
                 chai.request(server.app)
                     .delete(`/api/user/${newUserKeyPair.publicKey()}`)

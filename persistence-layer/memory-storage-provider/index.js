@@ -1,11 +1,11 @@
 const StorageProvider = require('../storage-provider'),
     MemoryUserProvider = require('./user-memory-provider'),
-    crypto = require('crypto')
+    uuidv4 = require('uuid/v4')
 
 function ensureId(model) {
     if (!model || model.id) return model
     //generate random 20-bytes identifier
-    model.id = crypto.randomBytes(20).toString('hex')
+    model.id = uuidv4()
 }
 
 //memory storage
@@ -19,6 +19,10 @@ const repository = {
 class MemoryStorageProvider extends StorageProvider {
     constructor() {
         super()
+    }
+    
+    init(config) {
+        return Promise.resolve()
     }
 
     fetchSubscriptions() {

@@ -1,10 +1,10 @@
 const UserProvider = require('../user-provider'),
-    crypto = require('crypto')
+    uuidv4 = require('uuid/v4')
 
 function ensureId(model) {
     if (!model || model.id) return model
     //generate random 20-bytes identifier
-    model.id = crypto.randomBytes(20).toString('hex')
+    model.id = uuidv4()
 }
 
 
@@ -17,8 +17,8 @@ class MemoryUserProvider extends UserProvider {
 
     _addUser(user) {
         let _user = {
-            pubkey: user.pubkey, 
-            roles: user.roles || [], 
+            pubkey: user.pubkey,
+            roles: user.roles || [],
             nonce: user.nonce || 0
         }
         ensureId(_user)

@@ -5,7 +5,7 @@ const express = require('express'),
     http = require('http'),
     auth = require('./authorization-handler')
 
-module.exports = function initializeServer(config) {
+module.exports = function (config) {
     //create Express server instance
     const app = express()
 
