@@ -1,3 +1,7 @@
+0.4.2 /2020-03-15
+=================
+* Updated code to avoid duplicated subscriptions by adding a hash to subscription object
+
 0.4.2 / 2020-02-16
 ==================
 
