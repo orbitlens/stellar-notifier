@@ -67,6 +67,12 @@ class SubscriptionModel extends Model {
      * Cached notifications, associated with the subscription
      */
     notifications
+
+    /**
+     * Subscription hash to avoid duplicated subscriptions
+     */
+    hash
+
 }
 
 module.exports = SubscriptionModel

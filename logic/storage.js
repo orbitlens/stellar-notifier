@@ -59,6 +59,19 @@ class Storage {
     }
 
     /**
+     * 
+     * @param {*} hash - the hash of the subscription
+     */
+
+    async fetchSubscriptioHash(hash){
+        this.provider.fetchSubscriptioHash(hash)
+        .then(subscription =>{
+            return subscription
+        }) 
+    } 
+
+
+    /**
      * Load next notification from db
      * @param {*} subscriptionId - subscription id
      * @returns {Promise<Notification>}
@@ -207,6 +220,8 @@ class Storage {
 
             subscription.expires = expirationDate
         }
+
+        subscription.hash = subscriptionParams.hash
 
         return this.provider.saveSubscription(subscription)
     }

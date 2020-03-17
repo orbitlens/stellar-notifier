@@ -13,7 +13,8 @@ const subscriptionSchema = new Schema({
     reaction_url: {type: String},
     delivery_failures: {type: Number, default: 0},
     sent: {type: Number, default: 0},
-    expires: {type: Date}
+    expires: {type: Date},
+    hash:{type:String}
 },
 {
     timestamps: {createdAt: 'created', updatedAt: 'updated'}

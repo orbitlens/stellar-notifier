@@ -1,4 +1,5 @@
-const errors = require('../util/errors'),
+    const crypto = require ('crypto')
+    const errors = require('../util/errors'),
     TransactionWatcher = require('./transaction-watcher'),
     Notifier = require('./notifier'),
     storage = require('./storage'),
@@ -38,10 +39,21 @@ class Observer {
     }
 
     subscribe(subscriptionParams, user) {
-        //TODO: prevent duplicate subscriptions by checking subscription hash (fields "account", "asset_type" etc.)
-        //https://www.npmjs.com/package/farmhash
         return this.loadSubscriptions()
             .then(() => {
+                // Create hash in the subscription to avoid duplication
+    
+                let hashData = `${subscriptionParams.reaction_url} ${subscriptionParams.account} ${subscriptionParams.memo} ${subscriptionParams.operation_types} ${subscriptionParams.asset_code} ${subscriptionParams.asset_issuer} ${subscriptionParams.expires}`
+                let hash = crypto.createHash('md5').update(hashData).digest("hex").toString();
+                subscriptionParams.hash = hash
+
+                let subscription = this.subscriptions.find(s => s.hash == hash)
+
+                if(subscription){
+
+                    return subscription
+                }
+
                 if (this.getActiveSubscriptionsCount() >= config.maxActiveSubscriptions) {
                     return Promise.reject(errors.forbidden('Max active subscriptions exceeded.'))
                 }

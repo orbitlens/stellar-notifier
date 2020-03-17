@@ -41,6 +41,10 @@ class MongoDBStorageProvider extends StorageProvider {
         return Subscription.findById(id)
     }
 
+    fetchSubscriptioHash(hash){
+        return Subscription.findOne({hash})
+    }
+
     fetchNextNotification(subscriptionId) {
         return Notification.findOne({subscriptions: toObjectId(subscriptionId)})
     }
