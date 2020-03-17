@@ -43,8 +43,8 @@ class Observer {
             .then(() => {
                 // Create hash in the subscription to avoid duplication
     
-                let hashData = `${subscriptionParams.account} ${subscriptionParams.asset_type} ${subscriptionParams.asset_code} ${subscriptionParams.asset_issuer}`
-                let hash = crypto.createHash('md5').update(hashData).digest("hex");
+                let hashData = `${subscriptionParams.reaction_url} ${subscriptionParams.account} ${subscriptionParams.memo} ${subscriptionParams.operation_types} ${subscriptionParams.asset_code} ${subscriptionParams.asset_issuer} ${subscriptionParams.expires}`
+                let hash = crypto.createHash('md5').update(hashData).digest("hex").toString();
                 subscriptionParams.hash = hash
 
                 let subscription = this.subscriptions.find(s => s.hash == hash)
