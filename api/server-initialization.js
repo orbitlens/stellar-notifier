@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const express = require('express'),
     bodyParser = require('body-parser'),
     cors = require('cors'),
@@ -55,35 +54,6 @@ module.exports = function (config) {
             bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
         console.log('Listening on ' + bind)
     })
-
-    const observer = require('../logic/observer')
-
-    process.on('SIGINT', () => {
-        shutdown()
-    })
-
-    process.on('SIGTERM', () => {
-        shutdown()
-    })
-
-    function shutdown(){
-        
-        console.log('Received kill signal')
-        console.log('Closing http server.');
-        server.close(() => {
-          console.log('Http server closed.');
-          observer.stop()
-          console.log('transaction observer stopped')
-
-          // boolean means [force], see in mongoose doc
-          mongoose.connection.close(false, () => {
-            console.log('MongoDb connection closed.');
-            process.exit(0);
-          });
-          
-        });
-      }
-    
-      server.app = app
+    server.app = app
     return server
 }
